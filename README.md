@@ -32,11 +32,6 @@ Through five-fold cross-validation, the model achieves a Pearson correlation of 
 
 <img src="https://github.com/msanchezliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F1_heterogeneous_gnn_affinity_prediction_model.png?raw=true" alt="Heterogeneous GNN affinity prediction model" width="700"/>
 
-Project Workflow
-------------
-
---------
-
 # Background Information
 
 ### Graph construction
@@ -90,3 +85,94 @@ This performance was achieved using a single generalist architecture, trained on
 <img src="https://github.com/msanchezliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F3_ablation_study.png?raw=true" alt="Block neutralization ablation" width="500"/>
 
 ## Usage
+
+## Usage
+
+The steps below describe how to predict the binding affinity of a single protein-DNA complex, starting from its raw structure file. Placeholders are written in angle brackets (`<complex_id>`), the standard documentation convention for a value the user must substitute with their own file or structure name — none of the steps depend on a specific, hardcoded example.
+
+### 1. Generate the structural JSON with DNAproDB
+
+The complex's 3-D structure (mmCIF or PDB format) is first processed with the [DNAproDB pipeline](https://github.com/timkartar/dnaprodb), which extracts the structural, geometric, and interaction descriptors used throughout this project and outputs a single `<complex_id>.json` file. Clone the DNAproDB repository and follow its own installation and execution instructions:
+ 
+```bash
+git clone https://github.com/timkartar/dnaprodb.git
+```
+
+The resulting `<complex_file>.json` file is the required input for the next steps.
+
+### 2. Compute electrostatic properties (PDB2PQR)
+
+Partial atomic charges and Van der Waals radii are computed with [PDB2PQR](https://pdb2pqr.readthedocs.io/), using the AMBER force field and PROPKA to assign protonation states at the experimental pH of the structure:
+
+```bash
+pdb2pqr --ff=AMBER \
+    --titration-state-method=propka \
+    --with-ph=<pH> \
+    --keep-chain \
+    --whitespace \
+    --drop-water \
+    --apbs-input <complex_file>.in \
+    <complex_file>.pdb <complex_file>.pqr
+```
+
+* `<complex_file>.pdb` — input structure of the complex (PDB format).
+* `<pH>` — experimental pH of the structure.
+
+This saves the per-atom partial charges and Van der Waals radii to `<complex_file>.pqr`, and automatically generates the APBS configuration file `<complex_file>.in`.
+
+### 3. Compute ESM-2 embeddings
+
+Per-residue evolutionary embeddings are then generated from the protein sequence(s) of the complex using the ESM-2 language model:
+
+```bash
+python3 src/features/compute_esm2.py \
+    --json "<complex_file>.json" \
+    --esm "esm2_t33_650M_UR50D" \
+    --half \
+    --output "<complex_file>.pt"
+```
+
+* `<complex_file>.json` — the raw DNAproDB export generated in step 1.
+* `--esm` — optional argument specifying the ESM-2 model version (defaults to `esm2_t33_650M_UR50D` if omitted).
+
+This saves the per-residue embedding of every amino acid in the complex to `<complex_file>.pt`.
+
+### 4. Build the standardized JSON
+
+The raw DNAproDB entry from step 1 and the electrostatics from step 2 are then combined, together with the experimental conditions of the structure, into the standardized JSON consumed by the prediction step:
+
+```bash
+python3 src/features/build_models.py \
+    --json "<complex_file>.json" \
+    --pqr "<complex_file>.pqr" \
+    --resolution <complex_resolution> \
+    --temperature <complex_temperature> \
+    --ph <complex_ph> \
+    --output "<complex_file>_standardized.json"
+```
+
+* `<complex_file>.json` — the raw DNAproDB export generated in step 1.
+* `<complex_file>.pqr` — the computed electrostatics generated in step 2.
+* `<complex_resolution>` — experimental resolution of the structure (Å).
+* `<complex_temperature>` — experimental temperature of the structure (K).
+* `<complex_ph>` — experimental pH of the structure, the same value used in step 2's `--with-ph`.
+
+This saves the standardized model formatted for the graph neural network to `<complex_file>_standardized.json`.
+
+### 5. Build the graph and predict the binding affinity
+
+The complex is finally assembled into its heterogeneous graph and evaluated with the trained cross-validation ensemble:
+
+```bash
+python3 src/features/predict_affinity.py \
+    --json "<complex_id>_standardized.json" \
+    --esm2 "<complex_id>.pt" \
+    --model-dir "<gnn_model_dir>"
+```
+
+* `<complex_id>_standardized.json` — the standardized JSON built in step 4.
+* `<complex_id>.pt` — the ESM-2 embeddings produced in step 3.
+* `<gnn_model_dir>` — the trained ensemble directory, containing a `folds/` subdirectory (one checkpoint per cross-validation fold) and a `normalizers/` subdirectory (the matching fitted normalizers), available for download from this repository.
+
+The script prints one line per fold with its individual prediction, followed by the final ensemble estimate.
+The reported value is the mean predicted pKd across the five folds, and its standard deviation reflects the ensemble's internal disagreement rather than a calibrated confidence interval.
