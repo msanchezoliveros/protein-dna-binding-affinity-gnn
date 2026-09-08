@@ -30,7 +30,7 @@ This project presents a heterogeneous graph neural network model for the quantit
 
 Through five-fold cross-validation, the model achieves a Pearson correlation of r = 0.63 ± 0.06 and a mean absolute error of 1.37 ± 0.10 kcal/mol. This performance is achieved using a single generalist architecture, far surpassing the values of 0.12 to 0.21 obtained by previous methods without subclassification. Interpretability analysis reveals that the prediction relies predominantly on evolutionary information, while the physical attributes of the edges or nodes remain underutilized.
 
-<img src="https://github.com/msanchezliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F1_heterogeneous_gnn_affinity_prediction_model.png?raw=true" alt="Heterogeneous GNN affinity prediction model" width="700"/>
+<img src="https://github.com/msanchezoliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F1_heterogeneous_gnn_affinity_prediction_model.png?raw=true" alt="Heterogeneous GNN affinity prediction model" width="700"/>
 
 # Background Information
 
