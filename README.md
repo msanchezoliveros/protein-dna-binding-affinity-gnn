@@ -107,12 +107,12 @@ Partial atomic charges and Van der Waals radii are computed with [PDB2PQR](https
 ```bash
 pdb2pqr --ff=AMBER \
     --titration-state-method=propka \
-    --with-ph=<pH> \
+    --with-ph="<pH>" \
     --keep-chain \
     --whitespace \
     --drop-water \
-    --apbs-input <complex_file>.in \
-    <complex_file>.pdb <complex_file>.pqr
+    --apbs-input "<complex_file>.in" \
+    "<complex_file>.pdb" "<complex_file>.pqr"
 ```
 
 * `<complex_file>.pdb` — input structure of the complex (PDB format).
@@ -145,9 +145,9 @@ The raw DNAproDB entry from step 1 and the electrostatics from step 2 are then c
 python3 src/features/build_models.py \
     --json "<complex_file>.json" \
     --pqr "<complex_file>.pqr" \
-    --resolution <complex_resolution> \
-    --temperature <complex_temperature> \
-    --ph <complex_ph> \
+    --resolution "<complex_resolution>" \
+    --temperature "<complex_temperature>" \
+    --ph "<complex_ph>" \
     --output "<complex_file>_standardized.json"
 ```
 
