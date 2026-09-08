@@ -86,7 +86,12 @@ This performance was achieved using a single generalist architecture, trained on
 
 ## Usage
 
-The steps below describe how to predict the binding affinity of a single protein-DNA complex, starting from its raw structure file. Placeholders are written in angle brackets (`<complex_id>`), the standard documentation convention for a value the user must substitute with their own file or structure name — none of the steps depend on a specific, hardcoded example.
+The steps below describe how to predict the binding affinity of a single protein-DNA complex, starting from its raw structure file.
+
+**Note:** If your input structure originates from a GROMACS simulation, water molecules are typically labeled as `SOL` instead of the standard PDB nomenclature `HOH`. This will cause the parsing tools to fail. You can easily fix your input file before starting by running:
+```bash
+sed -i -e 's/SOL/HOH/g' "<complex_file>.pdb"
+```
 
 ### 1. Generate the structural JSON with DNAproDB
 
