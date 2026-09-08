@@ -78,11 +78,11 @@ Evaluated via 5-fold cross-validation, the model achieved the following performa
 | Pearson correlation (r) | 0.63 ± 0.06 |
 | MAE | 1.37 ± 0.10 kcal/mol |
 
-<img src="https://github.com/msanchezliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F8_scatter_predictions.png?raw=true" alt="Predicted vs experimental affinity" width="500"/>
+<img src="https://github.com/msanchezoliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F8_scatter_predictions.png?raw=true" alt="Predicted vs experimental affinity" width="500"/>
 
 This performance was achieved using a single generalist architecture, trained on the entire dataset without subclassification, exceeding the correlation values (0.12–0.21) obtained by comparable methods when trained without subclassification. Interpretability analysis (block-neutralization ablation and integrated gradients) showed that the prediction relies predominantly on the ESM-2 evolutionary representation, while the physical attributes of the edges remain underutilized.
 
-<img src="https://github.com/msanchezliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F9_ablation_study.png?raw=true" alt="Block neutralization ablation" width="500"/>
+<img src="https://github.com/msanchezoliveros/protein-dna-binding-affinity-gnn/blob/main/figures/F9_ablation_study.png?raw=true" alt="Block neutralization ablation" width="500"/>
 
 ## Usage
 
